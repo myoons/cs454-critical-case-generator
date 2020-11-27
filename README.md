@@ -10,7 +10,7 @@
     <img alt="Maintenance" src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" />
   </a>
   <a href="#" target="_blank">
-    <img alt="License: CS454 20F Team GodYou?" src="https://img.shields.io/badge/License-GodYou?-red.svg" />
+    <img alt="License: CS454 20F Team GodYou?" src="https://img.shields.io/badge/License-GodYou-red.svg" />
   </a>
 </p>
 

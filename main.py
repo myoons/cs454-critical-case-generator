@@ -1,5 +1,5 @@
 import torch
-from dataloader import train_loader, val_loader, custom_imshow
+from utils.dataloader import train_loader, val_loader, custom_imshow
 
 import matplotlib.pyplot as plt
 import numpy as np

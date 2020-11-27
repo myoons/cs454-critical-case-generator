@@ -15,13 +15,11 @@ class mediumNet(nn.Module) :
         self.batchConv3 = nn.BatchNorm2d(16)
         self.conv4 = nn.Conv2d(16,32,3)
         self.batchConv4 = nn.BatchNorm2d(32)
-        self.conv5 = nn.Conv2d(32,48,3)
-        self.batchConv5 = nn.BatchNorm2d(48)
 
         self.pool = nn.MaxPool2d(2,2)
 
-        self.fc1 = nn.Linear(768,256)
-        self.fc2 = nn.Linear(256,128)
+        self.fc1 = nn.Linear(1152,512)
+        self.fc2 = nn.Linear(512,128)
         self.fc3 = nn.Linear(128,5)
         
         self.dropout = nn.Dropout(p=0.5)
@@ -42,7 +40,6 @@ class mediumNet(nn.Module) :
         x = self.pool(F.relu(self.conv2(x)))
         x = self.pool(F.relu(self.conv3(x)))
         x = self.pool(F.relu(self.conv4(x)))
-        x = F.relu(self.conv5(x))
 
         x = x.view(batchSize, -1)
         x = self.dropout(x)
