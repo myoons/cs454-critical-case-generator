@@ -188,7 +188,7 @@ def roulette(gen):
     augs = [g[0] for g in gen]
     scores = [g[1] for g in gen]
     relaScore = [f/sum(scores) for f in scores]
-    pick = random.choices(augs, weights = relaScore, k = 2)
+    pick = random.choices(gen, weights = relaScore, k = 2)
     return pick[0], pick[1]
 
 def crossover(augList, a, b):
