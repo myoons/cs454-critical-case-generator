@@ -38,7 +38,7 @@ for idx, data in enumerate(val_loader):
     inputs, labels = data
     outputs = model(inputs)
     _, predicted = torch.max(outputs.data, 1)
-    
+    # [[확률 array], [확률 array], ..]
     custom_imshow(inputs, predicted)
 
 
