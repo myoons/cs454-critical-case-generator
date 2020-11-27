@@ -1,6 +1,7 @@
 <h1 align="center">Critical Case Generator for Image Classification 👋</h1>
 <p>
   <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-blue.svg?cacheSeconds=2592000" />
+  <img src="https://img.shields.io/badge/pip-%3E%3D20.1.1-blue.svg" />
   <img src="https://img.shields.io/badge/python-%3E%3D3.7.7-blue.svg" />
   <img src="https://img.shields.io/badge/pytorch-%3E%3D1.6.0-blue.svg" />
   <a href="https://github.com/myoons/cs454-critical-case-generator" target="_blank">
@@ -20,6 +21,7 @@
 
 ## Prerequisites
 
+- pip >= 20.1.1
 - python >=3.7.7
 - pytorch >=1.6.0
 

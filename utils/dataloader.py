@@ -32,9 +32,3 @@ val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
                                                 batch_size=4,
                                                 shuffle=True
                                                 )
-
-if __name__ == "__main__":
-    for batch_idx, data in enumerate(train_loader) :
-        inputs, labels = data
-        custom_imshow(inputs, labels)
-        
