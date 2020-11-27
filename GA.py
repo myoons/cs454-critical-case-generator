@@ -48,7 +48,7 @@ augList = [iaa.Add((-40, 40)),
             iaa.ShearX((-20, 20)), 
             iaa.ScaleX((0.5, 1.5)), 
             iaa.ScaleY((0.5, 1.5)), 
-            iaa.Snowflakes(flake_size=(0.2, 0.7), speed=(0.007, 0.03)), 
+            #iaa.Snowflakes(flake_size=(0.2, 0.7), speed=(0.007, 0.03)), 
             #iaa.pillike.EnhanceSharpness()
             ]
 
@@ -104,7 +104,7 @@ def aug_GA(label, augList, popN, genN, rate, target_score, model):
     gen_num = 0
     status = True
     while status:
-        new_gen = GA(label, augList, gen, genN, rate)
+        new_gen = GA(label, augList, gen, genN, rate, model)
         for son in new_gen:
             if son[1] > target_score:
                 status = False
@@ -115,7 +115,7 @@ def aug_GA(label, augList, popN, genN, rate, target_score, model):
         gen_num += 1
         #print(gen_num)
 
-    return finAug
+    return finAug, finFit
 
 
 # augList에서 num(4)개만큼 augmentation 골라 리스트로 반환
@@ -162,8 +162,6 @@ def label_fit(labelIdx, augList, model):
             resList = torch.softmax(outputs, dim=-1).tolist()
             _, predicted = torch.max(outputs.data, 1)
 
-            imshow(aug_im)
-
         for i in range(10):
 
             first = sorted(resList[i])[4]
@@ -181,7 +179,6 @@ def label_fit(labelIdx, augList, model):
 
     # calculate the total fitness as average of 10 fitnesses
     fitnessTotal = np.mean(fitnessList)
-    print('Fitness : {}'.format(fitnessTotal))
     return fitnessTotal
 
 ########
@@ -198,7 +195,7 @@ def crossover(augList, a, b):
     i = random.randrange(len(a))
     ai = a[:i+1]
     bi = b[i+1:]
-    augListName = [g[0] for g in augList]
+    augListName = [g for g in augList]
     aiName = [m[0] for m in ai]
     biName = [n[0] for n in bi]
     possible = list(set(augListName).difference(set(aiName).union(set(biName))))
@@ -206,10 +203,10 @@ def crossover(augList, a, b):
 
     biNew = []
     for k in bi:
-        if k[0] in change:
+        if k in change:
             name = random.choice(possible)
             for c in range(len(augList)):
-                if name == augList[c][0]:
+                if name == augList[c]:
                     biNew.append(augList[c])
         else:
             biNew.append(k)
@@ -238,4 +235,5 @@ def GA(label, augList, gen, genN, rate, model):
 
 if __name__ == "__main__":
     model = prepare_model()
-    aug_GA(0, augList, 200, 40, 0.5, 1, model)
+    fin_aug, fin_fit = aug_GA(0, augList, 50, 40, 0.5, 1, model)
+    print(fin_aug, fin_fit)
