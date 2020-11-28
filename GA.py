@@ -185,32 +185,26 @@ def label_fit(labelIdx, augList, model):
 
 # gen list를 받아서 룰렛-휠 방식에 따라 2개의 스코어가 높은 aug부모를 픽함
 def roulette(gen):
-    augs = [g[0] for g in gen]
-    scores = [g[1] for g in gen]
-    relaScore = [f/sum(scores) for f in scores]
-    pick = random.choices(gen, weights = relaScore, k = 2)
+    augsOnly = [g[0] for g in gen]
+    scoresOnly = [g[1] for g in gen]
+    relaScore = [f/sum(scoresOnly) for f in scoresOnly]
+    pick = random.choices(augsOnly, weights = relaScore, k = 2)
     return pick[0], pick[1]
 
 def crossover(augList, a, b):
     i = random.randrange(len(a))
     ai = a[:i+1]
     bi = b[i+1:]
-    augListName = [g for g in augList]
-    aiName = [m[0] for m in ai]
-    biName = [n[0] for n in bi]
-    possible = list(set(augListName).difference(set(aiName).union(set(biName))))
-    change = list(set(aiName).intersection(set(biName)))
+    possible = list(set(augList).difference(set(ai).union(set(bi))))
+    change = list(set(ai).intersection(set(bi)))
 
     biNew = []
     for k in bi:
         if k in change:
             name = random.choice(possible)
-            for c in range(len(augList)):
-                if name == augList[c]:
-                    biNew.append(augList[c])
+            biNew.append(name)
         else:
             biNew.append(k)
-    
     return ai + biNew
 
 # crossover 결과물 augs C를 일정 확률 안에서 변이를 일으킴
@@ -229,7 +223,7 @@ def GA(label, augList, gen, genN, rate, model):
         Cn = mutate(augList, C, rate)
         new_gen.append([Cn, label_fit(label, Cn, model)]) # [iaa]
     sortGen = sorted(gen, key = lambda x : x[1])
-    new_gen = new_gen + sortGen[genN]
+    new_gen = new_gen + sortGen[genN:]
     return new_gen
     
 
