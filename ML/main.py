@@ -1,5 +1,5 @@
 import torch
-from utils.dataloader import train_loader, val_loader, custom_imshow
+from utils.dataloader import train_loader, val_loader
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -92,7 +92,7 @@ def eval(model, device):
 
             correct_images = (predicted == labels).squeeze()
 
-            for i in range(5) :
+            for i in range(inputs.size(0)) :
                 label = labels[i]
                 class_correct[label] += correct_images[i].item()
                 class_total[label] += 1

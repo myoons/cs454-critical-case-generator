@@ -1,5 +1,0 @@
-matplotlib @ file:///C:/ci/matplotlib-base_1592846084747/work
-numpy==1.19.2
-Pillow @ file:///C:/ci/pillow_1594298234712/work
-torch==1.6.0
-torchvision==0.7.0
