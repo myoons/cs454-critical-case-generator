@@ -4,7 +4,11 @@ import os
 import torch
 import random
 from PIL import Image
-import imgaug as ia
+import matplotlib.pyplot as plt
+
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
+
+import imgaug
 import imgaug.augmenters as iaa
 import matplotlib.pyplot as plt
 
@@ -13,71 +17,67 @@ from utils.dataloader import aug_loader
 
 from ML.models.medium import mediumNet
 from ML.models.small import smallNet
+from scipy.ndimage.filters import gaussian_filter1d
 
 classes = ('airplane', 'cat', 'dog', 'motorbike', 'person')
 
 def prepare_model():
 
     print('Preparing Model..')
-    
-    os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
-    PATH = './ML/trained_model/medium_74_128px.pth'
+    PATH = 'ML/trained_model/medium_74_128px.pth'
     model = mediumNet()
     trained_weight = torch.load(PATH, map_location='cpu')
     model.load_state_dict(trained_weight)
 
     return model
 
-augList = [iaa.Add((-40, 40)),
-           iaa.Multiply((0.5, 1.5)),
-            iaa.Cutout(fill_mode="constant", cval=(0, 255), fill_per_channel=1), 
-            iaa.SaltAndPepper(0.1),
-            # iaa.Cartoon(), 
-            # iaa.BlendAlphaRegularGrid(nb_rows=(4, 6), nb_cols=(1, 4)), 
-            iaa.GaussianBlur(sigma=(0.0, 3.0)), 
-            iaa.MotionBlur(k=15, angle=[-45, 45]), 
-            iaa.Grayscale(alpha=(0.0, 1.0)), 
-            # iaa.MultiplySaturation((0.5, 1.5)), 
-            iaa.SigmoidContrast(gain=(3, 10), cutoff=(0.4, 0.6)), 
-            iaa.LogContrast(gain=(0.6, 1.4)), 
-            iaa.Sharpen(alpha=(0.0, 1.0), lightness=(0.75, 2.0)), 
+augList = [iaa.Add(20),
+            iaa.Add(-20),
+            iaa.Multiply(0.8),
+            iaa.Multiply(1.3),
+            iaa.Cutout(fill_mode="constant", cval=(0, 255), fill_per_channel=1),
+            iaa.SaltAndPepper(0.05),
+            iaa.GaussianBlur(1.5),
+            iaa.MotionBlur(k=15, angle=60, direction=1),
+            iaa.MotionBlur(k=5, angle=60, direction=-1),
+            iaa.Grayscale(0.5),
+            iaa.SigmoidContrast(gain=10, cutoff=0.3),
+            iaa.LogContrast(0.7),
+            iaa.LogContrast(1.3),
+            iaa.Sharpen(alpha=0.5, lightness=0.9),
+            iaa.Sharpen(alpha=0.5, lightness=1.2),
             iaa.Fliplr(1),
             iaa.Flipud(1),
-            iaa.Rotate((-45, 45)), 
-            iaa.ShearX((-20, 20)),
-            iaa.ShearX((-20, 20)), 
-            iaa.ScaleX((0.5, 1.5)), 
-            iaa.ScaleY((0.5, 1.5)), 
-            #iaa.Snowflakes(flake_size=(0.2, 0.7), speed=(0.007, 0.03)), 
-            #iaa.pillike.EnhanceSharpness()
+            iaa.Rotate(15),
+            iaa.Rotate(-15),
+            iaa.ShearX(-10),
+            iaa.ShearX(10),
+            iaa.ShearY(-10),
+            iaa.ShearY(10),
+            iaa.ScaleX(0.7),
+            iaa.ScaleX(1.3),
+            iaa.ScaleY(0.7),
+            iaa.ScaleY(1.3),
             ]
 
-def custom_imshow(imgList, predicted):
+def custom_imshow(original_imgList, imgList, predicted):
     
     fig = plt.figure()
 
     rows = 2
-    cols = 2
+    cols = 5
 
-    for i in range(4):
-        img = imgList[i]
+    for i in range(5):
+        img = original_imgList[i]
         temp = fig.add_subplot(rows, cols, i+1)
         temp.set_title(classes[predicted[i]])
         temp.imshow(np.transpose(img, (1, 2, 0)))
         temp.axis('off')
     
-    plt.show()
-
-def imshow(imgList):
-    
-    fig = plt.figure()
-
-    rows = 2
-    cols = 2
-
-    for i in range(4):
+    for i in range(5):
         img = imgList[i]
-        temp = fig.add_subplot(rows, cols, i+1)
+        temp = fig.add_subplot(rows, cols, i+6)
+        temp.set_title(classes[predicted[i]])
         temp.imshow(np.transpose(img, (1, 2, 0)))
         temp.axis('off')
     
@@ -89,31 +89,39 @@ classes = ('airplane', 'cat', 'dog', 'motorbike', 'person')
 # 각 aug text에 맞는 함수 실행 매칭 필요
 # fitness fuction 업뎃 필요 = label_fit
 def aug_GA(label, augList, popN, genN, rate, target_score, model):
-    
+    # popN : Initial Population 
     # gen0 : 제일 처음 population
     # 기본적으로 gen list의 구조는 [ [augComb1, label_fit1],[augComb2, label_fit2], ... ]
     # [0.1, 0.3, 0.5, 0.1, 0.1]
 
     gen0 = []
     for n in range(popN):
-        randAug = make_augComb(augList,4)
+        randAug = make_augComb(augList,3)
         augFit = label_fit(label, randAug, model)
         gen0.append([randAug, augFit])
     
     gen = gen0
     gen_num = 0
     status = True
-    while status:
+    finAug = []
+    finFit = []
+
+    while status and gen_num < 40:
         new_gen = GA(label, augList, gen, genN, rate, model)
-        for son in new_gen:
+        for idx, son in enumerate(new_gen):
             if son[1] > target_score:
                 status = False
-                finAug, finFit = son[0], son[1]
-            #print(son[1])
-        print('Generation : {}'.format(gen))
+                finAug = son[0]
+                finFit = son[1]
+            
+            if gen_num == 39 and idx == 49:
+                finAug = son[0]
+                finFit = son[1]
+
         gen = new_gen
         gen_num += 1
-        #print(gen_num)
+        
+        print('Generation : {}'.format(gen_num))
 
     return finAug, finFit
 
@@ -139,7 +147,6 @@ def ImgTransform(images, TransformList):
         TransformList[0],
         TransformList[1],
         TransformList[2],
-        TransformList[3]
     ])
 
     I = cv2.normalize(images.permute(0,2,3,1).numpy(), None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U) # 10, 128, 128, 3
@@ -162,6 +169,9 @@ def label_fit(labelIdx, augList, model):
             resList = torch.softmax(outputs, dim=-1).tolist()
             _, predicted = torch.max(outputs.data, 1)
 
+        # print(str(augList[0].__class__.__name__) + '\n' + str(augList[1].__class__.__name__) + '\n' + str(augList[2].__class__.__name__) + '\n' + str(augList[3].__class__.__name__) + '\n')
+        # custom_imshow(inputs, aug_im, predicted)
+
         for i in range(10):
 
             first = sorted(resList[i])[4]
@@ -174,11 +184,11 @@ def label_fit(labelIdx, augList, model):
 
             f = (1-resList[i][labelIdx] + 0.5*(1-first+second) + var) * np.exp(first-resList[i][labelIdx])
             fitnessList.append(f)
-
             # [Tensor]
 
     # calculate the total fitness as average of 10 fitnesses
     fitnessTotal = np.mean(fitnessList)
+    print('Fintess : {}'.format(fitnessTotal))
     return fitnessTotal
 
 ########
@@ -217,17 +227,41 @@ def mutate(augList, C ,rate):
 
 def GA(label, augList, gen, genN, rate, model):
     new_gen = []
+    gen_fitness = 0
+
     for i in range(genN):
         A, B = roulette(gen)
         C = crossover(augList, A, B)
         Cn = mutate(augList, C, rate)
-        new_gen.append([Cn, label_fit(label, Cn, model)]) # [iaa]
+        fitness = label_fit(label, Cn, model)
+        new_gen.append([Cn, fitness]) # [iaa]
+    
     sortGen = sorted(gen, key = lambda x : x[1])
-    new_gen = new_gen + sortGen[genN:]
+    new_gen = new_gen + sortGen[genN:] # 총 50개
+
+    for gene in new_gen:
+        gen_fitness += gene[1]
+
+    fits.append(gen_fitness/len(new_gen))
+
     return new_gen
     
 
 if __name__ == "__main__":
     model = prepare_model()
-    fin_aug, fin_fit = aug_GA(0, augList, 50, 40, 0.5, 1, model)
-    print(fin_aug, fin_fit)
+    
+    fits = []
+
+    fin_aug, fin_fit = aug_GA(0, augList, 50, 20, 0.05, 3.5, model)
+    smoother = gaussian_filter1d(fits, sigma=1)
+
+    plt.plot(smoother)
+    plt.savefig('test_1.png')
+    plt.title('Fitness Graph')
+
+    plt.show()
+
+    print(fin_aug[0])
+    print(fin_aug[1])
+    print(fin_aug[2])
+    print(fin_fit)
