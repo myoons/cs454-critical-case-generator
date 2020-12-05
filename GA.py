@@ -44,8 +44,8 @@ augList = [iaa.Add(20),
             iaa.SigmoidContrast(gain=10, cutoff=0.3),
             iaa.LogContrast(0.7),
             iaa.LogContrast(1.3),
-            iaa.Sharpen(alpha=0.5, lightness=0.9),
-            iaa.Sharpen(alpha=0.5, lightness=1.2),
+            iaa.Sharpen(alpha=0.2, lightness=0.9),
+            iaa.Sharpen(alpha=0.2, lightness=1.2),
             iaa.Fliplr(1),
             iaa.Flipud(1),
             iaa.Rotate(15),
@@ -60,24 +60,17 @@ augList = [iaa.Add(20),
             iaa.ScaleY(1.3),
             ]
 
-def custom_imshow(original_imgList, imgList, predicted):
+def custom_imshow(imgList, labels):
     
     fig = plt.figure()
 
     rows = 2
     cols = 5
-
-    for i in range(5):
-        img = original_imgList[i]
-        temp = fig.add_subplot(rows, cols, i+1)
-        temp.set_title(classes[predicted[i]])
-        temp.imshow(np.transpose(img, (1, 2, 0)))
-        temp.axis('off')
     
-    for i in range(5):
+    for i in range(10):
         img = imgList[i]
-        temp = fig.add_subplot(rows, cols, i+6)
-        temp.set_title(classes[predicted[i]])
+        temp = fig.add_subplot(rows, cols, i+1)
+        temp.set_title(classes[labels[i]])
         temp.imshow(np.transpose(img, (1, 2, 0)))
         temp.axis('off')
     
@@ -102,15 +95,13 @@ def aug_GA(label, augList, popN, genN, rate, target_score, model):
     
     gen = gen0
     gen_num = 0
-    status = True
     finAug = []
     finFit = []
 
-    while status and gen_num < 40:
+    while gen_num < 40:
         new_gen = GA(label, augList, gen, genN, rate, model)
         for idx, son in enumerate(new_gen):
             if son[1] > target_score:
-                status = False
                 finAug = son[0]
                 finFit = son[1]
             
@@ -169,9 +160,6 @@ def label_fit(labelIdx, augList, model):
             resList = torch.softmax(outputs, dim=-1).tolist()
             _, predicted = torch.max(outputs.data, 1)
 
-        # print(str(augList[0].__class__.__name__) + '\n' + str(augList[1].__class__.__name__) + '\n' + str(augList[2].__class__.__name__) + '\n' + str(augList[3].__class__.__name__) + '\n')
-        # custom_imshow(inputs, aug_im, predicted)
-
         for i in range(10):
 
             first = sorted(resList[i])[4]
@@ -185,12 +173,25 @@ def label_fit(labelIdx, augList, model):
             f = (1-resList[i][labelIdx] + 0.5*(1-first+second) + var) * np.exp(first-resList[i][labelIdx])
             fitnessList.append(f)
             # [Tensor]
-
+                
     # calculate the total fitness as average of 10 fitnesses
     fitnessTotal = np.mean(fitnessList)
-    print('Fintess : {}'.format(fitnessTotal))
-    return fitnessTotal
 
+    """
+    if fitnessTotal > 2.8 :
+        
+        print(augList[0])
+        print('\n')
+        print(augList[1])
+        print('\n')
+        print(augList[2])
+        print('\n')
+        custom_imshow(inputs, labels)
+        custom_imshow(aug_im, predicted)
+
+        print(fitnessTotal)
+    """
+    return fitnessTotal
 ########
 
 # gen list를 받아서 룰렛-휠 방식에 따라 2개의 스코어가 높은 aug부모를 픽함
@@ -228,7 +229,7 @@ def mutate(augList, C ,rate):
 def GA(label, augList, gen, genN, rate, model):
     new_gen = []
     gen_fitness = 0
-
+    
     for i in range(genN):
         A, B = roulette(gen)
         C = crossover(augList, A, B)
@@ -242,7 +243,10 @@ def GA(label, augList, gen, genN, rate, model):
     for gene in new_gen:
         gen_fitness += gene[1]
 
-    fits.append(gen_fitness/len(new_gen))
+    average_fitness = gen_fitness/len(new_gen) 
+    fits.append(average_fitness)
+
+    print('Avearge Fitness : {}'.format(average_fitness))
 
     return new_gen
     
@@ -252,16 +256,11 @@ if __name__ == "__main__":
     
     fits = []
 
-    fin_aug, fin_fit = aug_GA(0, augList, 50, 20, 0.05, 3.5, model)
+    fin_aug, fin_fit = aug_GA(0, augList, 50, 20, 0.05, 3.0, model)
     smoother = gaussian_filter1d(fits, sigma=1)
 
     plt.plot(smoother)
-    plt.savefig('test_1.png')
+    plt.savefig('after_1.png')
     plt.title('Fitness Graph')
 
     plt.show()
-
-    print(fin_aug[0])
-    print(fin_aug[1])
-    print(fin_aug[2])
-    print(fin_fit)

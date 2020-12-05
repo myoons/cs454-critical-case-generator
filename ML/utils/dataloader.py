@@ -1,16 +1,16 @@
 import torch
 import torchvision
 from torchvision import transforms
-from utils.randaugment import RandAugment
+# from utils.randaugment import RandAugment
 import matplotlib.pyplot as plt
 import numpy as np
 
-train_dataset = torchvision.datasets.ImageFolder(root='./data/train',
+train_dataset = torchvision.datasets.ImageFolder(root='data/train',
                                         transform=transforms.Compose([
                                         transforms.Resize((128,128)),
                                         # transforms.RandomHorizontalFlip(),
                                         # transforms.RandomVerticalFlip(),
-                                        # RandAugment(n=2,m=8),
+                                        # RandAugment(n=1,m=4),
                                         transforms.ToTensor(),
                                         ]))
 
@@ -19,12 +19,12 @@ train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                                 shuffle=True
                                                 )
 
-val_dataset = torchvision.datasets.ImageFolder(root='./data/eval',
+val_dataset = torchvision.datasets.ImageFolder(root='data/eval',
                                         transform=transforms.Compose([
                                         transforms.Resize((128,128)),
                                         # transforms.RandomHorizontalFlip(),
                                         # transforms.RandomVerticalFlip(),
-                                        # RandAugment(n=2,m=8),
+                                        # RandAugment(n=1,m=4),
                                         transforms.ToTensor(),
                                         ]))
 

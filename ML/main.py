@@ -113,7 +113,8 @@ def parsing(correct, total, class_correct, class_total):
 def main():
 
     # Is GPU Available?
-    device = torch.device("cuda: 0" if torch.cuda.is_available() else "cpu")
+    #device = torch.device("cuda: 0" if torch.cuda.is_available() else "cpu")
+    device = torch.device('cpu')
     print("Current Using device : {}".format(device))
 
     if args.model == 'small' :
