@@ -7,8 +7,8 @@
   <a href="https://github.com/myoons/cs454-critical-case-generator" target="_blank">
     <img alt="Documentation" src="https://img.shields.io/badge/documentation-yes-brightgreen.svg" />
   </a>
-  <a href="https://github.com/kefranabg/readme-md-generator/graphs/commit-activity" target="_blank">
-    <img alt="Maintenance" src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" />
+  <a href="https://github.com/myoons/cs454-critical-case-generator/graphs/commit-activity" target="_blank">
+    <img alt="Maintenance" src="https://img.shields.io/badge/Maintained%3F-No-green.svg" />
   </a>
   <a href="#" target="_blank">
     <img alt="License: CS454 20F Team GodYou?" src="https://img.shields.io/badge/License-GodYou-red.svg" />
